@@ -1,4 +1,5 @@
 from sklearn import svm
+from sklearn.linear_model import SGDClassifier
 from sklearn import linear_model
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.pipeline import make_pipeline
@@ -19,23 +20,35 @@ data = load_breast_cancer()
 
 # 3. Model Development: 
 
-# Classification Model to predict diagnosis
+# Classification Models to predict diagnosis
 # Using a portion of data as the training set (mixture of malignant and benign diagnosis)
 training_idx = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60] 
 input_data_classification = data.data[training_idx]
 output_data_classification = data.target[training_idx]
 
-model = svm.SVC()
-model.fit(input_data_classification, output_data_classification)
-
 # Testing different rows of the dataset, not used in training
 test_idx = [20, 30, 70, 100, 200, 300]
-predictions = model.predict(data.data[test_idx]) # Prediction on testing rows
 
-# Comparison to actual diagnosis
 print("Classification Models:")
+
+# model 1: SVM model
+model_classification1 = svm.SVC()
+model_classification1.fit(input_data_classification, output_data_classification)
+predictions1 = model_classification1.predict(data.data[test_idx]) # Prediction on testing rows
+# Comparison to actual diagnosis
+print("\nModel 1: SVM")
 for i, idx in enumerate(test_idx):
-    prediction_label = data.target_names[predictions[i]]
+    prediction_label = data.target_names[predictions1[i]]
+    true_label = data.target_names[data.target[idx]]
+    print(f"Sample {idx} - Predicted: {prediction_label} | Actual: {true_label}")
+
+# model 2: SGD model
+model_classification2 = SGDClassifier()
+model_classification2.fit(input_data_classification, output_data_classification)
+predictions2 = model_classification2.predict(data.data[test_idx])
+print("\nModel 2: SGD")
+for i, idx in enumerate(test_idx):
+    prediction_label = data.target_names[predictions2[i]]
     true_label = data.target_names[data.target[idx]]
     print(f"Sample {idx} - Predicted: {prediction_label} | Actual: {true_label}")
 
@@ -47,9 +60,9 @@ input_data_regression = data.data[training_idx, 1:] # all other features will be
 output_data_regression = data.data[training_idx, 0] # radius will be used as the regression target
 
 # model 1: linear model
-model1 = linear_model.LinearRegression()
-model1.fit(input_data_regression, output_data_regression)
-res1 = model1.predict(data.data[test_idx, 1:])
+model_regression1 = linear_model.LinearRegression()
+model_regression1.fit(input_data_regression, output_data_regression)
+res1 = model_regression1.predict(data.data[test_idx, 1:])
 # Comparison to actual radius values
 print("\nModel 1: Linear Model")
 for i, idx in enumerate(test_idx):
@@ -58,9 +71,9 @@ for i, idx in enumerate(test_idx):
 
 
 # model 2: polynomial model
-model2 = make_pipeline(PolynomialFeatures(2), linear_model.LinearRegression())
-model2.fit(input_data_regression, output_data_regression)
-res2 = model2.predict(data.data[test_idx, 1:])
+model_regression2 = make_pipeline(PolynomialFeatures(2), linear_model.LinearRegression())
+model_regression2.fit(input_data_regression, output_data_regression)
+res2 = model_regression2.predict(data.data[test_idx, 1:])
 # Comparison to actual radius values
 print("\nModel 2: Polynomial Model")
 for i, idx in enumerate(test_idx):
@@ -70,7 +83,10 @@ for i, idx in enumerate(test_idx):
 
 # 4. Model Evaluation
 # Classification Model:
-# Based on the tested values, the classification model used had correctly predicted the diagnosises from using the trained dataset.
+# Based on the tested values, the SVM classification model used had correctly predicted all the diagnosises from the test dataset.
+# However, the SGD predicted 5/6 of the diagnoses correctly.
+# The SVM model would be more suitable for predicting the diagnoses in comparison to the SGD model.
 
 # Regression Models: Linear vs Polynomial Models
 # Both models predicted the data quite well. However, from the tested dataset, the linear model was better at predicting the radius.
+# The predicted output in the linear model was much closer to the true value compared to the polynomial model.
